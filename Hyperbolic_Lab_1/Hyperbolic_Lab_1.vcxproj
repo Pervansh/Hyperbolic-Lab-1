@@ -132,7 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdditionalMath.h" />
-    <ClInclude Include="AdvectonEq1DSolvers.h" />
+    <ClInclude Include="AdvectionEq1DSolvers.h" />
     <ClInclude Include="HyperbolicFileInterface.h" />
     <ClInclude Include="MonotoneFluxes.h" />
     <ClInclude Include="rkMethods.h" />

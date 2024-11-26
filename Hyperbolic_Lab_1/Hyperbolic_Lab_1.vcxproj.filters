@@ -26,7 +26,7 @@
     <ClInclude Include="TemplateOrdinaryDiffSolve.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="AdvectonEq1DSolvers.h">
+    <ClInclude Include="AdvectionEq1DSolvers.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="AdditionalMath.h">
