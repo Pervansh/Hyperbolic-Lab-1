@@ -25,13 +25,13 @@ struct TaskData {
     // Time of simulation end
     T tEnd;
     // Flux functor
-    AdvectionFluxType flux;
+    const AdvectionFluxType& flux;
     // Initial data array (u0[i] = u0_{i}, where i - cell number), i = 0, ..., N - 1
     const T* u0;
     // Number of elements in u0 array (i.e. a number of cells). required: N >= 2!
     int N;
 
-    TaskData(T a, T b, T dx, T dt, T tEnd, AdvectionFluxType flux, const T* u0, int N) 
+    TaskData(T a, T b, T dx, T dt, T tEnd, const AdvectionFluxType& flux, const T* u0, int N) 
         : a(a), b(b), dx(dx), dt(dt), tEnd(tEnd), flux(flux), u0(u0), N(N)
     {}
 };
@@ -39,7 +39,7 @@ struct TaskData {
 template <typename T, typename RkMethod, typename MonotoneFluxType, typename AdvectionFluxType>
 void uniformMinmodRecRkMethod(
     const TaskData<T, AdvectionFluxType>& taskData,
-    MonotoneFluxType monotoneFlux,
+    const MonotoneFluxType& monotoneFlux,
     std::ostream& output
 ) {
     const auto& N = taskData.N;
