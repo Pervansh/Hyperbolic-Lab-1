@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 
-#include "AdvectonEq1DSolvers.h"
+#include "AdvectionEq1DSolvers.h"
 
 int main() {
     std::cout << "Hello world!" << std::endl;

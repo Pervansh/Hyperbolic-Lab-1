@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
+#include <utility>
 
 #include "AdvectionEq1DSolvers.h"
 
@@ -16,16 +18,35 @@ struct Advection1dTaskFileData {
     T dt;
     // Time of simulation end
     T tEnd;
-    // Initial data array (u0[i] = u0_{i}, where i - cell number), i = 0, ..., N - 1
-    const T* u0;
     // Number of elements in u0 array (i.e. a number of cells). required: N >= 2!
     int N;
+    // Initial data array (u0[i] = u0_{i}, where i - cell number), i = 0, ..., N - 1
+    std::shared_ptr<T[]> u0;
 
-    int rkMethodId;
     int fluxId;
     int interpolationMethodId;
+    int monotomeFluxId;
+    int rkMethodId;
 };
 
-void advection1dTaskRead(std::istream& input) {
+template <typename T, typename AdvectionFluxType>
+TaskData<T, AdvectionFluxType> constructTaskData(const Advection1dTaskFileData<T>& data, const AdvectionFluxType& flux) {
+    return TaskData<T, AdvectionFluxType>(
+        data.a, data.b, data.dx, data.dt, data.tEnd, flux, data.N, data.u0.get()
+    );
+}
 
+template <typename T>
+Advection1dTaskFileData<T> advection1dTaskRead(std::istream& input) {
+    Advection1dTaskFileData<T> data;
+    input >> data.a >> data.b >> data.dx >> data.dt >> data.tEnd >> data.N;
+
+    data.u0 = std::make_shared<T[]>(data.N);
+    for (int i = 0; i < data.N; ++i) {
+        input >> u0[i];
+    }
+
+    input >> data.fluxId >> data.interpolationMethodId >> data.monotomeFluxId >> data.rkMethodId;
+
+    return std::move(data);
 }

@@ -26,10 +26,10 @@ struct TaskData {
     T tEnd;
     // Flux functor
     const AdvectionFluxType& flux;
+    // Number of elements in u0 array (i.e. a number of cells). Required: N >= 2!
+    int N;
     // Initial data array (u0[i] = u0_{i}, where i - cell number), i = 0, ..., N - 1
     const T* u0;
-    // Number of elements in u0 array (i.e. a number of cells). required: N >= 2!
-    int N;
 
     TaskData(T a, T b, T dx, T dt, T tEnd, const AdvectionFluxType& flux, const T* u0, int N) 
         : a(a), b(b), dx(dx), dt(dt), tEnd(tEnd), flux(flux), u0(u0), N(N)
