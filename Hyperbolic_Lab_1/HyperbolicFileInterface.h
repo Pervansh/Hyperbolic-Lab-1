@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <string>
 
 #include "AdvectionEq1DSolvers.h"
 
@@ -27,6 +28,8 @@ struct Advection1dTaskFileData {
     int interpolationMethodId;
     int monotomeFluxId;
     int rkMethodId;
+
+    std::string outputFileName;
 };
 
 template <typename T, typename AdvectionFluxType>
@@ -47,6 +50,7 @@ Advection1dTaskFileData<T> advection1dTaskRead(std::istream& input) {
     }
 
     input >> data.fluxId >> data.interpolationMethodId >> data.monotomeFluxId >> data.rkMethodId;
+    input >> data.outputFileName;
 
     return std::move(data);
 }
