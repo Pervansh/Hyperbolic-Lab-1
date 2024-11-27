@@ -46,7 +46,7 @@ Advection1dTaskFileData<T> advection1dTaskRead(std::istream& input) {
 
     data.u0 = std::make_shared<T[]>(data.N);
     for (int i = 0; i < data.N; ++i) {
-        input >> u0[i];
+        input >> data.u0[i];
     }
 
     input >> data.fluxId >> data.interpolationMethodId >> data.monotomeFluxId >> data.rkMethodId;

@@ -7,7 +7,6 @@
 
 #include "AdditionalMath.h"
 #include "rkMethods.h"
-#include "MonotoneFluxes.h"
 
 template <typename T, typename AdvectionFluxType>
 /*
@@ -31,8 +30,8 @@ struct TaskData {
     // Initial data array (u0[i] = u0_{i}, where i - cell number), i = 0, ..., N - 1
     const T* u0;
 
-    TaskData(T a, T b, T dx, T dt, T tEnd, const AdvectionFluxType& flux, const T* u0, int N) 
-        : a(a), b(b), dx(dx), dt(dt), tEnd(tEnd), flux(flux), u0(u0), N(N)
+    TaskData(T a, T b, T dx, T dt, T tEnd, const AdvectionFluxType& flux, int N, const T* u0)
+        : a(a), b(b), dx(dx), dt(dt), tEnd(tEnd), flux(flux), N(N), u0(u0)
     {}
 };
 
@@ -134,7 +133,7 @@ void uniformMinmodRecRkMethod(
         }
     }
 
-    output << t << ' ';
+    output << t - taskData.dt << ' ';
     for (int i = 0; i < N; i++) {
         output << us[i] << ' ';
     }
