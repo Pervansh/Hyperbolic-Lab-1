@@ -46,6 +46,13 @@ void uniformMinmodRecRkMethod(
     std::unique_ptr<T[]> us = std::make_unique<T[]>(taskData.N);
     std::unique_ptr<T[]> usPrev = std::make_unique<T[]>(taskData.N);
 
+    // cell centre printing
+    for (int i = 0; i < N; ++i) {
+        output << taskData.a + (2. * i + 1.) / 2. * taskData.dx << ' ';
+    }
+    output << '\n';
+
+    // 0th layer printing
     output << 0. << ' ';
     for (int i = 0; i < N; ++i) {
         us[i] = taskData.u0[i];
@@ -133,6 +140,7 @@ void uniformMinmodRecRkMethod(
         }
     }
 
+    // last layer printing
     output << t - taskData.dt << ' ';
     for (int i = 0; i < N; i++) {
         output << us[i] << ' ';
