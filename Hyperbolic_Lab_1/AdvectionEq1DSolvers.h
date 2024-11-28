@@ -99,18 +99,18 @@ void uniformMinmodRecRkMethod(
         }
         */
 
-        // Domain boundry conditions and treatment
+        // Domain boundry conditions and treatment (periodic)
 
-        uLs[0] = T(0.f);
-        uRs[N] = T(0.f);
+        uLs[0] = T(0.f); // shouldn't be evaluated during computations
+        uRs[N] = T(0.f); // shouldn't be evaluated during computations
 
         // half delta is without dx^{-1} because final formulae for uL & uR do not have dx
-        T halfDelta0 = T(0.5f) * minmod(usPrev[0], usPrev[1] - usPrev[0]);
+        T halfDelta0 = T(0.5f) * minmod(usPrev[0] - usPrev[N - 1], usPrev[1] - usPrev[0]); // periodic condition
         uLs[1] = usPrev[0] + halfDelta0; // Left value for right cell boundry
         uRs[0] = usPrev[0] - halfDelta0; // Right value for left cell boundry
 
         // half delta is without dx^{-1} because final formulae for uL & uR do not have dx
-        T halfDeltaN = T(0.5f) * minmod(usPrev[N - 1] - usPrev[N - 2], -usPrev[N - 1]);
+        T halfDeltaN = T(0.5f) * minmod(usPrev[N - 1] - usPrev[N - 2], usPrev[0] - usPrev[N - 1]); // periodic condition
         uLs[N]     = usPrev[N - 1] + halfDeltaN; // Left value for right cell boundry
         uRs[N - 1] = usPrev[N - 1] - halfDeltaN; // Right value for left cell boundry
 

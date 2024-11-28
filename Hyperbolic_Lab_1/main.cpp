@@ -7,12 +7,18 @@
 #include "MonotoneFluxes.h"
 #include "Fluxes.h"
 
+#define DEBUG_PRINT_TYPE
+
 template <typename T, typename RkMethod, typename MonotoneFluxType>
 void musclSelectFlux(
     std::ostream& output,
     const Advection1dTaskFileData<T>& data,
     const MonotoneFluxType& monotoneFlux)
 {
+#ifdef DEBUG_PRINT_TYPE
+    std::clog << "[DEBUG]: RkMethod type: " << typeid(RkMethod).name() << '\n';
+#endif // DEBUG_PRINT_TYPE
+
     if (data.fluxId == 0) {
         LinearFlux<T> flux(T(1.f));
         auto taskData = constructTaskData(data, flux);
