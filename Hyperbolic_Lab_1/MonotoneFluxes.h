@@ -64,3 +64,16 @@ public:
         return T(0.5f) * (fl + fr) - _halfS * (ur - ul);
     }
 };
+
+// Accurate flux for constant wind direction
+template <typename T>
+class AccurateFlux {
+    bool isRightwind; // is true, if wind is directed to right
+
+public:
+    AccurateFlux(bool isRightwind) : isRightwind(isRightwind) {}
+
+    inline T operator()(T fl, T fr, T ul, T ur) const {
+        return isRightwind * fl + !isRightwind * fr;
+    }
+};
