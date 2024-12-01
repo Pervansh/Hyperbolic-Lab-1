@@ -84,6 +84,33 @@ struct HeunsMethodRK {
     }
 };
 
+
+// T - time type, Y - phase coordinate type
+struct ExplicitEulerRK {
+    /*
+    static unsigned int stages;
+    static T a[];
+    static T b[];
+    */
+    // RK step for f w/ signature f(T, Y)
+    template<typename T, typename Y, typename Func>
+    static inline T stepTY(Func f, T t, Y y, T tau) {
+        return y + tau * f(t, y);
+    }
+
+    // RK step for f w/ signature f(Y, T)
+    template<typename T, typename Y, typename Func>
+    static inline T stepYT(Func f, Y y, T t, T tau) {
+        return y + tau * f(y, t);
+    }
+
+    // RK step for f w/ signature f(Y)
+    template<typename T, typename Y, typename Func>
+    static inline T stepY(Func f, Y y, T tau) {
+        return y + tau * f(y);
+    }
+};
+
 /*
 template <typename T>
 unsigned int SSPRK3<T>::stages = 3;

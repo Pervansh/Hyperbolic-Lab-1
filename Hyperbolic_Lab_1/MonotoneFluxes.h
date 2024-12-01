@@ -61,6 +61,6 @@ public:
     {}
 
     inline T operator()(T fl, T fr, T ul, T ur) const {
-        return T(0.5f) * (fl + fr - _halfS * (ur - ul));
+        return T(0.5f) * (fl + fr) - _halfS * (ur - ul);
     }
 };

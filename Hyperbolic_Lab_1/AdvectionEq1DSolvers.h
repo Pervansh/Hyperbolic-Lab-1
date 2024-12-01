@@ -101,18 +101,17 @@ void uniformMinmodRecRkMethod(
 
         // Domain boundry conditions and treatment (periodic)
 
-        uLs[0] = T(0.f); // shouldn't be evaluated during computations
-        uRs[N] = T(0.f); // shouldn't be evaluated during computations
-
         // half delta is without dx^{-1} because final formulae for uL & uR do not have dx
         T halfDelta0 = T(0.5f) * minmod(usPrev[0] - usPrev[N - 1], usPrev[1] - usPrev[0]); // periodic condition
         uLs[1] = usPrev[0] + halfDelta0; // Left value for right cell boundry
         uRs[0] = usPrev[0] - halfDelta0; // Right value for left cell boundry
+        uRs[N] = uRs[0]; // periodic condition
 
         // half delta is without dx^{-1} because final formulae for uL & uR do not have dx
         T halfDeltaN = T(0.5f) * minmod(usPrev[N - 1] - usPrev[N - 2], usPrev[0] - usPrev[N - 1]); // periodic condition
         uLs[N]     = usPrev[N - 1] + halfDeltaN; // Left value for right cell boundry
         uRs[N - 1] = usPrev[N - 1] - halfDeltaN; // Right value for left cell boundry
+        uLs[0] = uLs[N]; // periodic condition
 
         // Calculations of uLs and uRs for inner boundries (iterating over cells)
         for (int i = 1; i < N - 1; ++i) {
@@ -126,7 +125,6 @@ void uniformMinmodRecRkMethod(
         for (int i = 0; i <= N; ++i) {
             fs[i] = monotoneFlux(taskData.flux(uLs[i]), taskData.flux(uRs[i]), uLs[i], uRs[i]);
         }
-
 
         int i = 0; // cell index for RK
         auto rkRightPart = [&i, &taskData, &fs](T u) {
