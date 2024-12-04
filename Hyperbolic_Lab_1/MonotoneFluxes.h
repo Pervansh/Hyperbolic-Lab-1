@@ -73,7 +73,7 @@ class AccurateFlux {
 public:
     AccurateFlux(bool isRightwind) : isRightwind(isRightwind) {}
 
-    inline T operator()(T fl, T fr, T ul, T ur) const {
+    inline T operator()(T fl, T fr, [[maybe_unused]] T ul, [[maybe_unused]] T ur) const {
         return isRightwind * fl + !isRightwind * fr;
     }
 };

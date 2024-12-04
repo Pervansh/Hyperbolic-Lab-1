@@ -145,3 +145,66 @@ void uniformMinmodRecRkMethod(
     }
     output << '\n';
 }
+
+template <typename T, typename RkMethod, typename MonotoneFluxType, typename AdvectionFluxType>
+void uniformConstRecRkMethod(
+    const TaskData<T, AdvectionFluxType>& taskData,
+    const MonotoneFluxType& monotoneFlux,
+    std::ostream& output
+) {
+    const auto& N = taskData.N;
+
+    std::unique_ptr<T[]> us     = std::make_unique<T[]>(taskData.N);
+    std::unique_ptr<T[]> usPrev = std::make_unique<T[]>(taskData.N);
+
+    // cell centre printing
+    for (int i = 0; i < N; ++i) {
+        output << taskData.a + (2. * i + 1.) / 2. * taskData.dx << ' ';
+    }
+    output << '\n';
+
+    // 0th layer printing
+    output << 0. << ' ';
+    for (int i = 0; i < N; ++i) {
+        us[i] = taskData.u0[i];
+        output << us[i] << ' ';
+    }
+    output << '\n';
+
+    // Number of cells is N => number of boundries is (N + 1)
+    // array of values of monotone fluxes on cell's borders, fs[i] = f_{i - 1/2}
+    std::unique_ptr<T[]> fs = std::make_unique<T[]>(taskData.N + 1);
+
+    T t = 0;
+    for (; t <= taskData.tEnd; t += taskData.dt) {
+        // Time layers changing
+        std::swap(us, usPrev);
+        
+        // Domain boundry conditions treatment (periodic)
+        fs[0]     = monotoneFlux(taskData.flux(usPrev[N - 1]), taskData.flux(usPrev[0]), usPrev[N - 1], usPrev[0]);
+        fs[N] = monotoneFlux(taskData.flux(usPrev[0]), taskData.flux(usPrev[N - 1]), usPrev[0], usPrev[N - 1]);
+
+        // Monotone fluxes calculation for all cell's boundries
+        for (int i = 1; i < N; ++i) {
+            fs[i] = monotoneFlux(taskData.flux(usPrev[i - 1]), taskData.flux(usPrev[i]), usPrev[i - 1], usPrev[i]);
+        }
+
+        int i = 0; // cell index for RK
+        auto rkRightPart = [&i, &taskData, &fs](T u) {
+            return (fs[i] - fs[i + 1]) / taskData.dx;
+            };
+
+        // TVD RK step to obtain next time layer solution us
+        for (; i < N; ++i) {
+            // us[i] = RkMethod<T, T>::stepY(rkRightPart, usPrev[i], taskData.dt);
+            us[i] = RkMethod::stepY(rkRightPart, usPrev[i], taskData.dt);
+        }
+    }
+
+    // last layer printing
+    output << t - taskData.dt << ' ';
+    for (int i = 0; i < N; i++) {
+        output << us[i] << ' ';
+    }
+    output << '\n';
+}

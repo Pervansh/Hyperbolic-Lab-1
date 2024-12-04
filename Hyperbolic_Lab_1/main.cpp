@@ -9,8 +9,24 @@
 
 #define DEBUG_PRINT_TYPE
 
+template <typename T, typename RkMethod, typename MonotoneFluxType, typename AdvectionFluxType>
+void selectInterpolation(
+    std::ostream& output,
+    const Advection1dTaskFileData<T>& data,
+    const MonotoneFluxType& monotoneFlux,
+    const TaskData<T, AdvectionFluxType>& taskData
+) {
+    if (data.interpolationMethodId == 0) {
+        uniformMinmodRecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+    } else if (data.interpolationMethodId == 1) {
+        uniformConstRecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+    } else {
+        std::cerr << "[ERROR]: bad interpolationMethodId: " << data.interpolationMethodId << std::endl;
+    }
+}
+
 template <typename T, typename RkMethod, typename MonotoneFluxType>
-void musclSelectFlux(
+void selectFlux(
     std::ostream& output,
     const Advection1dTaskFileData<T>& data,
     const MonotoneFluxType& monotoneFlux)
@@ -22,7 +38,7 @@ void musclSelectFlux(
     if (data.fluxId == 0) {
         LinearFlux<T> flux(T(1.f));
         auto taskData = constructTaskData(data, flux);
-        uniformMinmodRecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+        selectInterpolation<T, RkMethod>(output, data, monotoneFlux, taskData);
 
     } else {
         std::cerr << "[ERROR]: bad fluxId: " << data.fluxId << std::endl;
@@ -30,16 +46,21 @@ void musclSelectFlux(
 }
 
 template <typename T, typename RkMethod>
-void musclSelectMonotoneFlux(std::ostream& output, const Advection1dTaskFileData<T>& data){
+void selectMonotoneFlux(std::ostream& output, const Advection1dTaskFileData<T>& data){
     if (data.monotomeFluxId == 0) {
         // musclSelectRkMethod<T, decltype(rusanovFlux)>(data);
         auto ptr = rusanovFlux<T>;
-        musclSelectFlux<T, RkMethod>(output, data, ptr);
+        selectFlux<T, RkMethod>(output, data, ptr);
 
     } else if (data.monotomeFluxId == 1) {
         // musclSelectRkMethod<T, UniformSimpleLaxFriedrichsFlux>(data);
         UniformSimpleLaxFriedrichsFlux<T> laxFriedrichsFlux(data.dx, data.dt);
-        musclSelectFlux<T, RkMethod>(output, data, laxFriedrichsFlux);
+        selectFlux<T, RkMethod>(output, data, laxFriedrichsFlux);
+
+    } else if (data.monotomeFluxId == 2) {
+        // musclSelectRkMethod<T, UniformSimpleLaxFriedrichsFlux>(data);
+        AccurateFlux<T> accurateFlux(true);
+        selectFlux<T, RkMethod>(output, data, accurateFlux);
 
     } else {
         std::cerr << "[ERROR]: bad monotomeFluxId: " << data.monotomeFluxId << std::endl;
@@ -47,12 +68,15 @@ void musclSelectMonotoneFlux(std::ostream& output, const Advection1dTaskFileData
 }
 
 template <typename T>
-void musclSelectRkMethod(std::ostream& output, const Advection1dTaskFileData<T>& data) {
+void selectRkMethod(std::ostream& output, const Advection1dTaskFileData<T>& data) {
     if (data.rkMethodId == 0) {
-        musclSelectMonotoneFlux<T, HeunsMethodRK>(output, data);
+        selectMonotoneFlux<T, HeunsMethodRK>(output, data);
 
     } else if (data.rkMethodId == 1) {
-        musclSelectMonotoneFlux<T, SSPRK3>(output, data);
+        selectMonotoneFlux<T, SSPRK3>(output, data);
+
+    } else if (data.rkMethodId == 2) {
+        selectMonotoneFlux<T, ExplicitEulerRK>(output, data);
 
     } else {
         std::cerr << "[ERROR]: bad rkMethodId: " << data.rkMethodId << std::endl;
@@ -60,15 +84,11 @@ void musclSelectRkMethod(std::ostream& output, const Advection1dTaskFileData<T>&
 }
 
 template <typename T>
-void launcMusclScheme(const Advection1dTaskFileData<T>& data) {
+void launchScheme(const Advection1dTaskFileData<T>& data) {
     std::ofstream output(data.outputFileName + ".txt");
 
-    if (data.interpolationMethodId == 0) {
-        musclSelectRkMethod(output, data);
-    } else {
-        std::cerr << "[ERROR]: bad interpolationMethodId: " << data.interpolationMethodId << std::endl;
-    }
-
+    selectRkMethod(output, data);
+    
     output.close();
 }
 
@@ -77,7 +97,7 @@ int main() {
     auto data = advection1dTaskRead<double>(input);
     input.close();
 
-    launcMusclScheme<double>(data);
+    launchScheme<double>(data);
 
     /*
     std::cout << "Hello world!" << std::endl;
