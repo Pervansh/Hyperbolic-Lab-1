@@ -20,7 +20,7 @@ struct SSPRK3 {
 
     // RK step for f w/ signature f(T, Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepTY(Func f, T t, Y y, T tau) {
+    static inline Y stepTY(Func f, T t, Y y, T tau) {
         Y k1 = f(t, y);
         Y k2 = f(t + tau, y + tau * k1);
         Y k3 = f(t + T(0.5f) * tau, y + T(0.25f) * tau * (k1 + k2));
@@ -30,7 +30,7 @@ struct SSPRK3 {
 
     // RK step for f w/ signature f(Y, T)
     template<typename T, typename Y, typename Func>
-    static inline T stepYT(Func f, Y y, T t, T tau) {
+    static inline Y stepYT(Func f, Y y, T t, T tau) {
         Y k1 = f(y, t);
         Y k2 = f(y + tau * k1, t + tau);
         Y k3 = f(y + T(0.25f) * tau * (k1 + k2), t + T(0.5f) * tau);
@@ -40,7 +40,7 @@ struct SSPRK3 {
 
     // RK step for f w/ signature f(Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepY(Func f, Y y, T tau) {
+    static inline Y stepY(Func f, Y y, T tau) {
         Y k1 = f(y);
         Y k2 = f(y + tau * k1);
         Y k3 = f(y + T(0.25f) * tau * (k1 + k2));
@@ -58,7 +58,7 @@ struct HeunsMethodRK {
     */
     // RK step for f w/ signature f(T, Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepTY(Func f, T t, Y y, T tau) {
+    static inline Y stepTY(Func f, T t, Y y, T tau) {
         Y k1 = f(t, y);
         Y k2 = f(t + tau, y + tau * k1);
 
@@ -67,7 +67,7 @@ struct HeunsMethodRK {
 
     // RK step for f w/ signature f(Y, T)
     template<typename T, typename Y, typename Func>
-    static inline T stepYT(Func f, Y y, T t, T tau) {
+    static inline Y stepYT(Func f, Y y, T t, T tau) {
         Y k1 = f(y, t);
         Y k2 = f(y + tau * k1, t + tau);
 
@@ -76,7 +76,7 @@ struct HeunsMethodRK {
 
     // RK step for f w/ signature f(Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepY(Func f, Y y, T tau) {
+    static inline Y stepY(Func f, Y y, T tau) {
         Y k1 = f(y);
         Y k2 = f(y + tau * k1);
 
@@ -94,19 +94,19 @@ struct ExplicitEulerRK {
     */
     // RK step for f w/ signature f(T, Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepTY(Func f, T t, Y y, T tau) {
+    static inline Y stepTY(Func f, T t, Y y, T tau) {
         return y + tau * f(t, y);
     }
 
     // RK step for f w/ signature f(Y, T)
     template<typename T, typename Y, typename Func>
-    static inline T stepYT(Func f, Y y, T t, T tau) {
+    static inline Y stepYT(Func f, Y y, T t, T tau) {
         return y + tau * f(y, t);
     }
 
     // RK step for f w/ signature f(Y)
     template<typename T, typename Y, typename Func>
-    static inline T stepY(Func f, Y y, T tau) {
+    static inline Y stepY(Func f, Y y, T tau) {
         return y + tau * f(y);
     }
 };

@@ -17,9 +17,9 @@ void selectInterpolation(
     const TaskData<T, AdvectionFluxType>& taskData
 ) {
     if (data.interpolationMethodId == 0) {
-        uniformMinmodRecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+        uniformMinmodRecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else if (data.interpolationMethodId == 1) {
-        uniformConstRecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+        uniformConstRecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else {
         std::cerr << "[ERROR]: bad interpolationMethodId: " << data.interpolationMethodId << std::endl;
     }
