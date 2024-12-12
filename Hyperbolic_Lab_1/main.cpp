@@ -20,6 +20,8 @@ void selectInterpolation(
         uniformMinmodRecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else if (data.interpolationMethodId == 1) {
         uniformConstRecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
+    } else if (data.interpolationMethodId == 2) {
+        uniformWeno5RecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else {
         std::cerr << "[ERROR]: bad interpolationMethodId: " << data.interpolationMethodId << std::endl;
     }

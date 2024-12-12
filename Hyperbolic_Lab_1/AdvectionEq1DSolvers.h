@@ -8,6 +8,7 @@
 
 #include "AdditionalMath.h"
 #include "rkMethods.h"
+#include "Interpolation.h"
 #include "VectorOperations.h"
 
 template <typename T, typename AdvectionFluxType>
@@ -364,6 +365,148 @@ void uniformMinmodRecVecRkMethod(
 
         us = RkMethod::stepY(rkRightPartOp, usPrev, taskData.dt);
     }
+
+    // last layer printing
+    output << t - taskData.dt << ' ';
+    for (int i = 0; i < N; i++) {
+        output << us[i] << ' ';
+    }
+    output << '\n';
+}
+
+template <typename T, typename RkMethod, typename MonotoneFluxType, typename AdvectionFluxType>
+void uniformWeno5RecVecRkMethod(
+    const TaskData<T, AdvectionFluxType>& taskData,
+    const MonotoneFluxType& monotoneFlux,
+    std::ostream& output
+) {
+#ifdef DEBUG_PRINT_TYPE
+    std::clog << "[DEBUG]: RkMethod type: " << typeid(RkMethod).name() << '\n';
+#endif // DEBUG_PRINT_TYPE
+
+    const auto& N = taskData.N;
+
+    /*
+        Looped array declaration!
+        If array ys[N] of y_i is looped, then it means
+        ys[i + 2] = y_i, y[0] = y_{N - 2}, y[1] = y_{N - 1}, y[N + 2] = y_0, y[N + 3] = y_1
+    */
+
+    std::vector<T> us(N);
+    std::vector<T> usPrev(N);
+    std::vector<T> loopedUsPrev(N + 4);
+
+    // Looped array of x_i
+    std::vector<T> xs(N + 4);
+
+    // cell centre printing
+    for (int i = 0; i < N; ++i) {
+        xs[i + 2] = (2. * i + 1.) / 2. * taskData.dx;
+        output << taskData.a + (2. * i + 1.) / 2. * taskData.dx << ' ';
+    }
+    output << '\n';
+
+    // Looping xs
+    xs[0]     = xs[N - 2];
+    xs[1]     = xs[N - 1];
+    xs[N + 2] = xs[0];
+    xs[N + 3] = xs[1];
+
+    // 0th layer printing
+    output << 0. << ' ';
+    for (int i = 0; i < N; ++i) {
+        us[i] = taskData.u0[i];
+        output << us[i] << ' ';
+    }
+    output << '\n';
+
+    // Number of cells is N => number of boundries is (N + 1)
+    // array of interpolated (extrapolated) values w/ WENO5 of u_i on right (i - 1)-th cell's border, uLs[i] = u^L_{i - 1/2}
+    std::vector<T> uLs(N + 1);
+    // array of interpolated (extrapolated) values w/ WENO5 of u_i on left i-th cell's border, uRs[i] = u^R_{i - 1/2}
+    std::vector<T> uRs(N + 1);
+    // array of values of monotone fluxes on cell's borders, fs[i] = f_{i - 1/2}
+    std::vector<T> fs(N + 1);
+    // array of interpolated (extrapolated) values of u_i on left i-th cell's border, vLs[i][r] = u^{(r), L}_{i - 1/2}
+    std::vector<std::vector<T>> vLs(N + 1, std::vector<T>(3));
+    // array of interpolated (extrapolated) values of u_i on left i-th cell's border, vRs[i][r] = u^{(r), R}_{i - 1/2}
+    std::vector<std::vector<T>> vRs(N + 1, std::vector<T>(3));
+
+    // Operator, generating all right parts for all u_{i}
+    auto rkRightPartOp = [&taskData, &uLs, &uRs, &fs, &N, &xs, &loopedUsPrev, &monotoneFlux, &vLs, &vRs](
+        const std::vector<T>& usPrev
+    ) {
+        std::vector<T> diffs(N + 1); // array for right parts for current RK step
+
+        for (int i = 0; i < N; ++i) {
+            loopedUsPrev[i + 2] = usPrev[i];
+        }
+
+        // Looping loopedUsPrev
+        loopedUsPrev[0] = loopedUsPrev[N - 2];
+        loopedUsPrev[1] = loopedUsPrev[N - 1];
+        loopedUsPrev[N + 2] = loopedUsPrev[0];
+        loopedUsPrev[N + 3] = loopedUsPrev[1];
+        
+        // Calculations of vLs and vRs for all boundries (iterating over cells)
+        for (int i = 0; i < N; ++i) {
+            // Note: not optimised, identical calculations in each interPolynom call
+            for (int r = 0; r < 3; ++r) {
+                // Left value for right cell boundry
+                vLs[i + 1][r] = interPolynom3AtPoint(
+                    xs.data() + i + 2 - r,
+                    loopedUsPrev.data() + i + 2 - r,
+                    T(i + 1) * taskData.dx);
+                // Right value for left cell boundry
+                vRs[i][r] = interPolynom3AtPoint(
+                    xs.data() + i + 2 - r,
+                    loopedUsPrev.data() + i + 2 - r,
+                    T(i) * taskData.dx);
+            }
+
+            T ds[3] = { T(3.f) / 10, T(3.f) / 5, T(1.f) / 10 };
+            T eps = 1e-6;
+            T betas[3] = {
+                T(13.f) / 12 * sqr(loopedUsPrev[i + 2] - 2 * loopedUsPrev[i + 3] + loopedUsPrev[i + 4]) +
+                    T(0.25f) * sqr(3 * loopedUsPrev[i + 2] - 4 * loopedUsPrev[i + 3] + loopedUsPrev[i + 4]),
+                T(13.f) / 12 * sqr(loopedUsPrev[i + 1] - 2 * loopedUsPrev[i + 2] + loopedUsPrev[i + 3]) +
+                    T(0.25f) * sqr(loopedUsPrev[i + 1] + loopedUsPrev[i + 3]),
+                T(13.f) / 12 * sqr(loopedUsPrev[i] - 2 * loopedUsPrev[i + 1] + loopedUsPrev[i + 2]) +
+                    T(0.25f) * sqr(loopedUsPrev[i] - 4 * loopedUsPrev[i + 1] + 3 * loopedUsPrev[i + 2])
+            };
+            T alphas[3] = { ds[0] / sqr(eps + betas[0]), ds[1] / sqr(eps + betas[1]), ds[2] / sqr(eps + betas[2]) };
+            T alphaSum = alphas[0] + alphas[1] + alphas[2];
+            T omegas[3] = { alphas[0] / alphaSum, alphas[1] / alphaSum, alphas[2] / alphaSum };
+
+            uLs[i + 1] = omegas[0] * vLs[i + 1][0] + omegas[1] * vLs[i + 1][1] + omegas[2] * vLs[i + 1][2];
+            uRs[i] = omegas[0] * vRs[i][0] + omegas[1] * vRs[i][1] + omegas[2] * vRs[i][2];
+        }
+
+        // Domain boundry condition treatment (periodic)
+        uLs[0] = uLs[N];
+        uRs[N] = uRs[0];
+
+        // Monotone fluxes calculation for all cell's boundries
+        for (int i = 0; i <= N; ++i) {
+             fs[i] = monotoneFlux(taskData.flux(uLs[i]), taskData.flux(uRs[i]), uLs[i], uRs[i]);
+        }
+
+        for (int i = 0; i < N; ++i) {
+            diffs[i] = (fs[i] - fs[i + 1]) / taskData.dx;
+        }
+
+        return std::move(diffs);
+    };
+
+    T t = 0;
+    ///*
+    for (; t <= taskData.tEnd; t += taskData.dt) {
+        // Time layers changing
+        std::swap(us, usPrev);
+
+        us = RkMethod::stepY(rkRightPartOp, usPrev, taskData.dt);
+    }
+    //*/
 
     // last layer printing
     output << t - taskData.dt << ' ';

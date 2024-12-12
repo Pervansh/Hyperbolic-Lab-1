@@ -25,7 +25,7 @@ struct SSPRK3 {
         Y k2 = f(t + tau, y + tau * k1);
         Y k3 = f(t + T(0.5f) * tau, y + T(0.25f) * tau * (k1 + k2));
 
-        return y + tau / T(6.f) * (k1 + k2 + T(2.f) * k3);
+        return y + tau / T(6.f) * (k1 + k2 + T(4.f) * k3);
     }
 
     // RK step for f w/ signature f(Y, T)
@@ -35,7 +35,7 @@ struct SSPRK3 {
         Y k2 = f(y + tau * k1, t + tau);
         Y k3 = f(y + T(0.25f) * tau * (k1 + k2), t + T(0.5f) * tau);
 
-        return y + tau / T(6.f) * (k1 + k2 + T(2.f) * k3);
+        return y + tau / T(6.f) * (k1 + k2 + T(4.f) * k3);
     }
 
     // RK step for f w/ signature f(Y)
@@ -45,7 +45,7 @@ struct SSPRK3 {
         Y k2 = f(y + tau * k1);
         Y k3 = f(y + T(0.25f) * tau * (k1 + k2));
 
-        return y + tau / T(6.f) * (k1 + k2 + T(2.f) * k3);
+        return y + tau / T(6.f) * (k1 + k2 + T(4.f) * k3);
     }
 };
 
