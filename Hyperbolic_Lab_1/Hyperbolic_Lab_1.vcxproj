@@ -138,6 +138,7 @@
     <ClInclude Include="Interpolation.h" />
     <ClInclude Include="MonotoneFluxes.h" />
     <ClInclude Include="rkMethods.h" />
+    <ClInclude Include="rkMethodTests.h" />
     <ClInclude Include="TemplateOrdinaryDiffSolve.h" />
     <ClInclude Include="VectorOperations.h" />
   </ItemGroup>

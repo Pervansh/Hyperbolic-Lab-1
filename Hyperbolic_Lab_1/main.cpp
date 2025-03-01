@@ -21,6 +21,7 @@ void selectInterpolation(
     } else if (data.interpolationMethodId == 1) {
         uniformConstRecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else if (data.interpolationMethodId == 2) {
+        std::clog << "[DEBUG]: WENO5 interpolation";
         uniformWeno5RecVecRkMethod<T, RkMethod>(taskData, monotoneFlux, output);
     } else {
         std::cerr << "[ERROR]: bad interpolationMethodId: " << data.interpolationMethodId << std::endl;
