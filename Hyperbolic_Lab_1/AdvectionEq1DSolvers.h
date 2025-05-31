@@ -363,7 +363,7 @@ void uniformMinmodRecVecRkMethod(
             return std::move(diffs);
         };
 
-        us = RkMethod::stepY(rkRightPartOp, usPrev, taskData.dt);
+        us = RkMethod::stepY(rkRightPartOp, usPrev, std::min(taskData.dt, taskData.tEnd - t));
     }
 
     // last layer printing
